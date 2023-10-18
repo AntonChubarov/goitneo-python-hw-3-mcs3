@@ -1,4 +1,8 @@
 from collections import UserDict
+from datetime import datetime, timedelta
+
+
+DATE_FORMAT = "%d.%m.%Y"
 
 
 class Field:
@@ -23,14 +27,26 @@ class Phone(Field):
         return self.value == other.value
 
     @staticmethod
-    def is_valid_phone(value):
+    def is_valid_phone(value: str) -> bool:
         return len(str(value)) == 10 and value.isdigit()
+
+
+class Birthday(Field):
+    def __init__(self, value):
+        super().__init__(datetime.strptime(value, DATE_FORMAT).date())
+
+    def __eq__(self, other):
+        return self.value == other.value
+
+    def __str__(self):
+        return self.value.strftime(DATE_FORMAT)
 
 
 class Record:
     def __init__(self, name: str):
         self.name = Name(name)
         self.phones = []
+        self.birthday = None
 
     def add_phone(self, phone: str) -> None:
         self.phones.append(Phone(phone))
@@ -56,6 +72,9 @@ class Record:
                 return p
         return None
 
+    def add_birthday(self, date: str) -> None:
+        self.birthday = Birthday(date)
+
     def __str__(self):
         phone_str = "; ".join(str(p) for p in self.phones)
         return f"Contact name: {self.name}, phones: {phone_str}"
@@ -73,6 +92,55 @@ class AddressBook(UserDict):
     def delete(self, name: str) -> None:
         if name in self.data:
             del self.data[name]
+
+    def get_birthdays_per_week(self) -> dict[str, list[str]]:
+        users = []
+        for record in self.data.values():
+            birthday = record.birthday.value
+            if birthday:
+                users.append({"name": record.name.value,
+                             "birthday": record.birthday.value})
+
+        today = datetime.today().date()
+
+        users_to_congratulate: dict[str, list[str]] = {}
+
+        for user in users:
+            birthday_this_year = user["birthday"].date().replace(
+                year=today.year)
+
+            days_to_period_start, days_to_period_end = 0, 7
+            if today.strftime("%A") == "Monday":
+                days_to_period_start, days_to_period_end = -2, 5
+            elif today.strftime("%A") == "Sunday":
+                days_to_period_start, days_to_period_end = -1, 6
+
+            delta_days = (birthday_this_year - today).days
+
+            if days_to_period_start <= delta_days < days_to_period_end:
+                day_name = birthday_this_year.strftime("%A")
+
+                if day_name in ("Saturday", "Sunday"):
+                    day_name = "Monday"
+
+                if day_name not in users_to_congratulate:
+                    users_to_congratulate[day_name] = []
+
+                users_to_congratulate[day_name].append(user["name"])
+
+        birthday_days = list(users_to_congratulate.keys())
+        sorted_days = [(datetime.today()+timedelta(days=i)).
+                       strftime("%A") for i in range(7)]
+        sorted_days = list(filter(
+            lambda day: day in birthday_days, sorted_days))
+
+        dayly_sorted_users_to_congratulate: dict[str, list] = {}
+
+        for day in sorted_days:
+            names = ", ".join(users_to_congratulate[day])
+            dayly_sorted_users_to_congratulate[day] = names
+
+        return dayly_sorted_users_to_congratulate
 
 
 if __name__ == "__main__":

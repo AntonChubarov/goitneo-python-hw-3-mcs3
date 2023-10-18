@@ -200,6 +200,12 @@ def handle_command(command: dict[str, str]) -> str:
         return show_phone(command["name"])
     if cmd == "all":
         return get_all()
+    if cmd == "add-birthday":
+        pass
+    if cmd == "show-birthday":
+        pass
+    if cmd == "birthdays":
+        pass
 
     raise ValueError(f"invalid command: {cmd}")
 
