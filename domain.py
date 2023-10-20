@@ -78,7 +78,12 @@ class Record:
 
     def __str__(self):
         phone_str = "; ".join(str(p) for p in self.phones)
-        return f"Contact name: {self.name}, phones: {phone_str}"
+        result = f"Contact name: {self.name}, phones: {phone_str}"
+
+        if self.birthday:
+            result += f". Birthday {str(self.birthday)}"
+
+        return result
 
 
 class AddressBook(UserDict):
@@ -107,8 +112,7 @@ class AddressBook(UserDict):
         users_to_congratulate: dict[str, list[str]] = {}
 
         for user in users:
-            birthday_this_year = user["birthday"].date().replace(
-                year=today.year)
+            birthday_this_year = user["birthday"].replace(year=today.year)
 
             days_to_period_start, days_to_period_end = 0, 7
             if today.strftime("%A") == "Monday":
