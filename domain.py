@@ -1,5 +1,6 @@
 from collections import UserDict
 from datetime import datetime, timedelta
+import pickle
 
 
 DATE_FORMAT = "%d.%m.%Y"
@@ -141,6 +142,27 @@ class AddressBook(UserDict):
             dayly_sorted_users_to_congratulate[day] = names
 
         return dayly_sorted_users_to_congratulate
+    
+    def save_to_file(self, path: str) -> None:
+        with open(path, "wb") as file:
+            pickle.dump(self, file)
+
+    def read_from_file(self, path: str) -> None:
+        with open(path, "ab+") as file:
+            file.seek(0)
+            content = pickle.load(file)
+            self.data = content
+    
+    def __len__(self):
+        return len(self.data)
+    
+    def __str__(self) -> str:
+        result = ""
+        for record in self.data.values():
+            result += str(record) + "\n"
+
+        return result.rstrip()
+    
 
 
 if __name__ == "__main__":

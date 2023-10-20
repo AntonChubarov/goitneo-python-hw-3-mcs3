@@ -3,9 +3,11 @@ import json
 import signal
 import sys
 
+from domain import AddressBook, Record
+
 
 contacts_file_name: str = ""
-contacts: dict[str, str] = {}
+contacts: AddressBook = AddressBook()
 
 
 def handle_system_signal(sig, frame) -> None:
@@ -35,15 +37,17 @@ def load_contacts() -> None:
     if not contacts_file_name:
         raise ValueError("file name is not specified (empty)")
 
-    if not contacts_file_name.endswith(".json"):
+    if not contacts_file_name.endswith(".dat"):
         raise ValueError(f"file {contacts_file_name} is not a JSON file")
 
     global contacts
-    with open(contacts_file_name, "a+") as fh:
-        fh.seek(0)
-        contacts = json.load(fh)
 
-    validate_contacts()
+    try:
+        contacts.read_from_file(contacts_file_name)
+    except EOFError:
+        pass
+
+    # validate_contacts()
 
 
 def save_contacts() -> None:
@@ -53,8 +57,7 @@ def save_contacts() -> None:
     if len(contacts) == 0:
         return
 
-    with open(contacts_file_name, "w") as fh:
-        json.dump(contacts, fh, indent=4)
+    contacts.save_to_file(contacts_file_name)
 
 
 def greet() -> str:
@@ -62,59 +65,29 @@ def greet() -> str:
 
 
 def add_contact(name: str, phone: str) -> str:
-    if name in contacts:
-        raise ValueError(
-            f"name {name} already exists. "
-            "Use command \"change\" to update")
-
-    if not name or name.isspace():
-        raise ValueError("empty name")
-
-    if not phone or phone.isspace():
-        raise ValueError("empty phone")
-
-    contacts[name] = phone
+    record = Record(name)
+    record.add_phone(phone)
+    contacts.add_record(record)
     return f"{name} was added to your contacts"
 
 
 def change_contact(name: str, phone: str) -> str:
-    if name not in contacts:
-        raise ValueError(
-            f"there is no name {name} in contacts. "
-            "Use command \"add\" to create")
-
-    if not name or name.isspace():
-        raise ValueError("empty name")
-
-    if not phone or phone.isspace():
-        raise ValueError("empty phone")
-
-    contacts[name] = phone
-    return f"{name}'s contact was updated"
+    pass
+    #record = contacts.find(name)
+    #return f"{name}'s contact was updated"
 
 
 def show_phone(name: str) -> str:
     if not name or name.isspace():
         raise ValueError("empty name")
 
-    if name not in contacts:
-        raise ValueError(
-            f"There is no name {name} in contacts. "
-            "Use command \"add\" to create")
+    record = contacts.find(name)
 
-    return contacts[name]
+    return str(record)
 
 
 def get_all() -> str:
-    if len(contacts) == 0:
-        return "You have no saved contacts yet"
-
-    contacts_to_return = ""
-
-    for name, phone in contacts.items():
-        contacts_to_return += name + " " + phone + "\n"
-
-    return contacts_to_return.rstrip()
+    return str(contacts)
 
 
 def critical_error(func):
@@ -140,7 +113,7 @@ def critical_error(func):
             print(f"argument parse error: {ape}")
             sys.exit(1)
         except Exception as e:
-            print(f"unexpected critical error: {e}")
+            print(f"unexpected critical error: {type(e)}: {e}")
             sys.exit(1)
 
     return inner
@@ -160,7 +133,7 @@ def init():
     parser = argparse.ArgumentParser()
     parser.add_argument("--file", type=str,
                         help="Path to the json file with saved contacts",
-                        default="./data/contacts.json")
+                        default="./data/contacts.dat")
 
     args = parser.parse_args()
 
@@ -181,7 +154,7 @@ def input_error(func):
         except IndexError as ie:
             return f"index error: {ie}"
         except Exception as e:
-            return f"unexpected error: {e}"
+            return f"unexpected error: {type(e)}: {e}"
 
     return inner
 
