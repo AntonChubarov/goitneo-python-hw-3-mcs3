@@ -82,6 +82,8 @@ class Record:
 
         if self.birthday:
             result += f". Birthday {str(self.birthday)}"
+        else:
+            result += "."
 
         return result
 
@@ -102,8 +104,7 @@ class AddressBook(UserDict):
     def get_birthdays_per_week(self) -> dict[str, list[str]]:
         users = []
         for record in self.data.values():
-            birthday = record.birthday.value
-            if birthday:
+            if record.birthday:
                 users.append({"name": record.name.value,
                              "birthday": record.birthday.value})
 
