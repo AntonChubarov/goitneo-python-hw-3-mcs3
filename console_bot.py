@@ -46,22 +46,26 @@ def greet() -> str:
 
 
 def add_contact(name: str, phone: str) -> str:
+    record = book.find(name)
+
+    if record:  # TODO make an exception in book and process it here
+        record.add_phone(phone)
+        return f"phone was added to {name}'s record"
+
     record = Record(name)
     record.add_phone(phone)
     book.add_record(record)
     return f"{name} was added to your book"
 
 
-def change_contact(name: str, phone: str) -> str:
-    pass
-    #record = book.find(name)
-    #return f"{name}'s contact was updated"
+def change_contact(name: str, old_phone: str, new_phone: str) -> str:
+    record = book.find(name)
+
+    record.edit_phone(old_phone, new_phone)
+    return f"{name}'s contact was updated"
 
 
 def show_phone(name: str) -> str:
-    if not name or name.isspace():
-        raise ValueError("empty name")
-
     record = book.find(name)
 
     return str(record)
@@ -70,12 +74,15 @@ def show_phone(name: str) -> str:
 def get_all() -> str:
     return str(book)
 
+
 def add_birthday(name: str, date: str) -> str:
     book.find(name).add_birthday(date)
     return f"added birth date for {name}"
 
+
 def get_birthday(name: str) -> str:
     return str(book.find(name).birthday)
+
 
 def get_birthdays_per_week() -> str:
     birthdays = book.get_birthdays_per_week()

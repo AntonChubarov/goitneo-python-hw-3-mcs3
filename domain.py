@@ -94,8 +94,8 @@ class AddressBook(UserDict):
             raise ValueError("record must be an instance of the Record class")
         self.data[record.name.value] = record
 
-    def find(self, name: str) -> Record:
-        return self.data[name]
+    def find(self, name: str) -> Record | None:
+        return self.data.get(name)
 
     def delete(self, name: str) -> None:
         if name in self.data:
@@ -147,7 +147,7 @@ class AddressBook(UserDict):
             dayly_sorted_users_to_congratulate[day] = names
 
         return dayly_sorted_users_to_congratulate
-    
+
     def save_to_file(self, path: str) -> None:
         with open(path, "wb") as file:
             pickle.dump(self, file)
@@ -157,17 +157,16 @@ class AddressBook(UserDict):
             file.seek(0)
             content = pickle.load(file)
             self.data = content
-    
+
     def __len__(self):
         return len(self.data)
-    
+
     def __str__(self) -> str:
         result = ""
-        for record in self.data.values():
-            result += str(record) + "\n"
+        for name in sorted(self.data.keys()):
+            result += str(self.data[name]) + "\n"
 
         return result.rstrip()
-    
 
 
 if __name__ == "__main__":
@@ -198,3 +197,6 @@ if __name__ == "__main__":
     print(john_record)
 
     book.delete("Jane")
+
+    alex = book.find("Alex")
+    print(alex)
