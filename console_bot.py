@@ -10,18 +10,18 @@ book_file_name: str = ""
 book: AddressBook = AddressBook()
 
 
-def handle_system_signal(sig, frame) -> None:
+def handle_system_signal(sig, frame):
     _, _ = sig, frame
     print("\nTermination signal received. Shutting down...")
     shutdown()
 
 
-def load_book() -> None:
+def load_book():
     if not book_file_name:
         raise ValueError("file name is not specified (empty)")
 
     if not book_file_name.endswith(".dat"):
-        raise ValueError(f"file {book_file_name} is not a JSON file")
+        raise ValueError(f"file {book_file_name} is not a DAT file")
 
     global book
 
@@ -31,7 +31,7 @@ def load_book() -> None:
         pass
 
 
-def save_book() -> None:
+def save_book():
     if not book_file_name:
         raise ValueError("file name was not specified (empty)")
 
@@ -45,24 +45,46 @@ def greet() -> str:
     return "How can I help you?"
 
 
+def get_help() -> str:
+    return "Commands:\n" \
+        "hello: show greeting\n" \
+        "add: add new phone, example: add John 0685554689\n" \
+        "change: change phone, example: change John 0685554689 0505557899\n" \
+        "phone: show phones, example: phone John\n" \
+        "all: show entire address book\n" \
+        "add-birthday: example: add-birthday John 17.10.1989\n" \
+        "show-birthday: example: show-birthday John\n" \
+        "birthdays: show who shulld be congratulated this week"
+
+
 def add_contact(name: str, phone: str) -> str:
-    record = Record(name)
+    record = book.find(name)
+
+    if not record:
+        record = Record(name)
+        record.add_phone(phone)
+        book.add_record(record)
+        return f"{name} was added to your book"
+
     record.add_phone(phone)
-    book.add_record(record)
-    return f"{name} was added to your book"
+    return f"New phone was added to {name}'s record"
 
 
-def change_contact(name: str, phone: str) -> str:
-    pass
-    #record = book.find(name)
-    #return f"{name}'s contact was updated"
+def change_contact(name: str, old_phone: str, new_phone: str) -> str:
+    record = book.find(name)
+
+    if not record:
+        raise ValueError(f"no name {name} in address book")
+
+    record.edit_phone(old_phone, new_phone)
+    return f"{name}'s contact was updated"
 
 
 def show_phone(name: str) -> str:
-    if not name or name.isspace():
-        raise ValueError("empty name")
-
     record = book.find(name)
+
+    if not record:
+        raise ValueError(f"no name {name} in address book")
 
     return str(record)
 
@@ -70,12 +92,20 @@ def show_phone(name: str) -> str:
 def get_all() -> str:
     return str(book)
 
+
 def add_birthday(name: str, date: str) -> str:
     book.find(name).add_birthday(date)
     return f"added birth date for {name}"
 
+
 def get_birthday(name: str) -> str:
-    return str(book.find(name).birthday)
+    birthday = book.find(name).birthday
+
+    if not birthday:
+        return f"no saved birthday for {name}"
+
+    return str(birthday)
+
 
 def get_birthdays_per_week() -> str:
     birthdays = book.get_birthdays_per_week()
@@ -161,18 +191,25 @@ def input_error(func):
 def handle_command(cmd: str, args: list[str]) -> str:
     if cmd == "hello":
         return greet()
+    if cmd == "help":
+        return get_help()
     if cmd == "add":
-        return add_contact(args[0], args[1])
+        name, phone = args
+        return add_contact(name, phone)
     if cmd == "change":
-        return change_contact(args[0], args[1], args[2])
+        name, old_phone, new_phone = args
+        return change_contact(name, old_phone, new_phone)
     if cmd == "phone":
-        return show_phone(args[0])
+        name, = args
+        return show_phone(name)
     if cmd == "all":
         return get_all()
     if cmd == "add-birthday":
-        return add_birthday(args[0], args[1])
+        name, birthday = args
+        return add_birthday(name, birthday)
     if cmd == "show-birthday":
-        return get_birthday(args[0])
+        name, = args
+        return get_birthday(name)
     if cmd == "birthdays":
         return get_birthdays_per_week()
 

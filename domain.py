@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import pickle
 
 
-DATE_FORMAT = "%d.%m.%Y"
+DATE_FORMAT: str = "%d.%m.%Y"
 
 
 class Field:
@@ -19,7 +19,7 @@ class Name(Field):
 
 
 class Phone(Field):
-    def __init__(self, value):
+    def __init__(self, value: str) -> None:
         if not self.is_valid_phone(value):
             raise ValueError("Invalid phone number format")
         super().__init__(value)
@@ -33,7 +33,7 @@ class Phone(Field):
 
 
 class Birthday(Field):
-    def __init__(self, value):
+    def __init__(self, value: str) -> None:
         super().__init__(datetime.strptime(value, DATE_FORMAT).date())
 
     def __eq__(self, other):
@@ -44,7 +44,7 @@ class Birthday(Field):
 
 
 class Record:
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.name = Name(name)
         self.phones = []
         self.birthday = None
@@ -68,10 +68,11 @@ class Record:
             f"phone {old_phone} wasn't found in record {self.name}")
 
     def find_phone(self, phone: str) -> Phone:
+        phone = Phone(phone)
         for p in self.phones:
-            if str(p) == phone:
+            if p == phone:
                 return p
-        return None
+        raise ValueError(f"phone {phone} not found")
 
     def add_birthday(self, date: str) -> None:
         self.birthday = Birthday(date)
@@ -79,9 +80,6 @@ class Record:
     def __str__(self):
         phone_str = "; ".join(str(p) for p in self.phones)
         result = f"Contact name: {self.name}, phones: {phone_str}"
-
-        if self.birthday:
-            result += f". Birthday {str(self.birthday)}"
 
         return result
 
@@ -93,19 +91,24 @@ class AddressBook(UserDict):
         self.data[record.name.value] = record
 
     def find(self, name: str) -> Record:
-        return self.data[name]
+        return self.data.get(name)
 
     def delete(self, name: str) -> None:
         if name in self.data:
             del self.data[name]
 
-    def get_birthdays_per_week(self) -> dict[str, list[str]]:
+    def __get_users_with_birthdays(self) -> list[dict[str, datetime.date]]:
         users = []
         for record in self.data.values():
-            birthday = record.birthday.value
+            birthday = record.birthday
             if birthday:
                 users.append({"name": record.name.value,
                              "birthday": record.birthday.value})
+
+        return users
+
+    def get_birthdays_per_week(self) -> dict[str, list[str]]:
+        users = self.__get_users_with_birthdays()
 
         today = datetime.today().date()
 
@@ -146,7 +149,7 @@ class AddressBook(UserDict):
             dayly_sorted_users_to_congratulate[day] = names
 
         return dayly_sorted_users_to_congratulate
-    
+
     def save_to_file(self, path: str) -> None:
         with open(path, "wb") as file:
             pickle.dump(self, file)
@@ -156,20 +159,22 @@ class AddressBook(UserDict):
             file.seek(0)
             content = pickle.load(file)
             self.data = content
-    
+
     def __len__(self):
         return len(self.data)
-    
-    def __str__(self) -> str:
+
+    def __str__(self):
         result = ""
         for record in self.data.values():
             result += str(record) + "\n"
 
         return result.rstrip()
-    
 
 
 if __name__ == "__main__":
+    # task reqirements test script
+    print("Task reqirements test script:")
+
     book = AddressBook()
 
     john_record = Record("John")
@@ -193,7 +198,37 @@ if __name__ == "__main__":
     found_phone = john.find_phone("5555555555")
     print(f"{john.name}: {found_phone}")
 
+    book.delete("Jane")
+
+    # additional test script
+    print("\nAdditional test script:")
+
     john_record.remove_phone("5555555555")
     print(john_record)
 
-    book.delete("Jane")
+    try:
+        john_record.add_phone("1112223333")
+    except ValueError as ve:
+        print(f"error: {ve}")
+
+    try:
+        john_record.add_phone("11122233334")
+    except ValueError as ve:
+        print(f"error: {ve}")
+
+    try:
+        john_record.add_phone("111222333")
+    except ValueError as ve:
+        print(f"error: {ve}")
+
+    try:
+        john_record.edit_phone("5555555555", "6666666666")
+    except ValueError as ve:
+        print(f"error: {ve}")
+
+    book.add_record(jane_record)
+    jane_record.add_phone("0975554862")
+
+    print(book.find("Alex"))
+
+    print(str(book))
