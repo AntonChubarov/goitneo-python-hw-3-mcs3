@@ -1,5 +1,4 @@
 import argparse
-import json
 import signal
 import sys
 
@@ -120,9 +119,6 @@ def critical_error(func):
     def inner(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except json.JSONDecodeError as jde:
-            print(f"json decode error: {jde}")
-            sys.exit(1)
         except ValueError as ve:
             print(f"critical value error: {ve}")
             sys.exit(1)
