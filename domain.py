@@ -151,12 +151,16 @@ class AddressBook(UserDict):
         return dayly_sorted_users_to_congratulate
 
     def save_to_file(self, path: str) -> None:
+        if not path:
+            path = "./data/book.dat"
         with open(path, "wb") as file:
             pickle.dump(self, file)
 
     def read_from_file(self, path: str) -> None:
-        with open(path, "ab+") as file:
-            file.seek(0)
+        if not path.upper().endswith("DAT"):
+            raise ValueError(f"file {path} is not a DAT file")
+        with open(path, "rb") as file:
+            # file.seek(0)
             content = pickle.load(file)
             self.data = content
 
