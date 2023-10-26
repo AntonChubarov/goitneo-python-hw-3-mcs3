@@ -20,21 +20,23 @@ class Name(Field):
 
 class Phone(Field):
     def __init__(self, value: str) -> None:
-        if len(str(value)) == 10 and value.isdigit():
-            raise ValueError("invalid phone number format")
+        # if len(str(value)) == 10 and value.isdigit():
+        #     raise ValueError("invalid phone number format")
 
-        super().__init__(value)
+        # super().__init__(value)
+        self.__value = None
+        self.value = value
 
     @property
     def value(self):
-        return self.value
+        return self.__value
 
     @value.setter
     def value(self, value: str) -> None:
-        if len(str(value)) == 10 and value.isdigit():
+        if not (len(str(value)) == 10 and value.isdigit()):
             raise ValueError("invalid phone number format")
 
-        self.value = value
+        self.__value = value
 
     def __eq__(self, other):
         return self.value == other.value
