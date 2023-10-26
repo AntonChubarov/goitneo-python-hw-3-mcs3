@@ -107,7 +107,7 @@ class AddressBook(UserDict):
 
         return users
 
-    def get_birthdays_per_week(self) -> dict[str, list[str]]:
+    def get_birthdays_per_week(self) -> dict[str, str]:
         users = self.__get_users_with_birthdays()
 
         today = datetime.today().date()
@@ -142,7 +142,7 @@ class AddressBook(UserDict):
         sorted_days = list(filter(
             lambda day: day in birthday_days, sorted_days))
 
-        dayly_sorted_users_to_congratulate: dict[str, list] = {}
+        dayly_sorted_users_to_congratulate: dict[str, str] = {}
 
         for day in sorted_days:
             names = ", ".join(users_to_congratulate[day])

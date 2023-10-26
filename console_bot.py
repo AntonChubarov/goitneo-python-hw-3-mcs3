@@ -15,31 +15,6 @@ def handle_system_signal(sig, frame):
     shutdown()
 
 
-# def load_book():
-#     if not book_file_name:
-#         raise ValueError("file name is not specified (empty)")
-
-#     if not book_file_name.endswith(".dat"):
-#         raise ValueError(f"file {book_file_name} is not a DAT file")
-
-#     global book
-
-#     try:
-#         book.read_from_file(book_file_name)
-#     except EOFError:
-#         pass
-
-
-# def save_book():
-#     if not book_file_name:
-#         raise ValueError("file name was not specified (empty)")
-
-#     if len(book) == 0:
-#         return
-
-#     book.save_to_file(book_file_name)
-
-
 def greet() -> str:
     return "How can I help you?"
 
@@ -159,10 +134,7 @@ def init():
 
     args = parser.parse_args()
 
-    # global book_file_name
     return args.file
-
-    # load_book()
 
 
 def input_error(func):
