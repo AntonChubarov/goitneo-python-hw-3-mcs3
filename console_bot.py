@@ -116,13 +116,13 @@ def critical_error(func):
     return inner
 
 
-# @critical_error
+@critical_error
 def shutdown():
     book.save_to_file(book_file_name)
     sys.exit()
 
 
-# @critical_error
+@critical_error
 def init():
     signal.signal(signal.SIGINT, handle_system_signal)
     signal.signal(signal.SIGTERM, handle_system_signal)
@@ -155,7 +155,7 @@ def input_error(func):
     return inner
 
 
-# @input_error
+@input_error
 def handle_command(cmd: str, args: list[str]) -> str:
     if cmd == "hello":
         return greet()
@@ -190,7 +190,7 @@ def parse_command(user_input: str) -> (str, list[str]):
     return cmd, *args
 
 
-# @critical_error
+@critical_error
 def main():
     book_file_name = init()
 

@@ -20,10 +20,6 @@ class Name(Field):
 
 class Phone(Field):
     def __init__(self, value: str) -> None:
-        # if len(str(value)) == 10 and value.isdigit():
-        #     raise ValueError("invalid phone number format")
-
-        # super().__init__(value)
         self.__value = None
         self.value = value
 
@@ -169,10 +165,12 @@ class AddressBook(UserDict):
     def read_from_file(self, path: str) -> None:
         if not path.upper().endswith("DAT"):
             raise ValueError(f"file {path} is not a DAT file")
-        with open(path, "rb") as file:
-            # file.seek(0)
-            content = pickle.load(file)
-            self.data = content
+        try:
+            with open(path, "rb") as file:
+                content = pickle.load(file)
+                self.data = content
+        except FileNotFoundError:
+            pass
 
     def __len__(self):
         return len(self.data)
